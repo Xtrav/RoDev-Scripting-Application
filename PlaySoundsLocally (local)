@@ -1,0 +1,5 @@
+local sounderEvent = game:GetService("ReplicatedStorage"):WaitForChild("PlaySoundLocally")
+local player = game.Players.LocalPlayer
+sounderEvent.OnClientEvent:Connect(function(sound)
+sound:Play()
+end)
