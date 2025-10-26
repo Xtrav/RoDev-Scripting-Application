@@ -1,0 +1,15 @@
+local module = {
+	 ScreenShake = function(player,length)
+		local iterations = length * 25
+		for shaker = 0,iterations,1 do
+			local Xoff = math.random(-100,100) / 590
+			local Yoff = math.random(-100,100) / 590
+			local Zoff = math.random(-100,100) / 590
+			player:FindFirstChild("Humanoid").CameraOffset = Vector3.new(Xoff,Yoff,Zoff)
+			task.wait(0.05)	
+		end
+		player:FindFirstChild("Humanoid").CameraOffset = Vector3.new(0,0,0)
+	end
+}
+
+return module
