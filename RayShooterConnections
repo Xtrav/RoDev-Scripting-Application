@@ -1,0 +1,87 @@
+local rep = game:GetService("ReplicatedStorage")
+local shotEff = rep:WaitForChild("ShotEffectsAtt")
+local gunEff = rep:WaitForChild("GunShotEffectsAtt")
+local damageMod = require(rep:WaitForChild("DealDamageToGivenPlayer"))
+local shootEvent = rep:WaitForChild("ShootRay")
+local soundsFold = game.Workspace:WaitForChild("Sounds")
+local gunShot = soundsFold:WaitForChild("GunShot")
+local function addfx(target,tip,player,instance)
+	local destroyables = {}
+	if not (instance.Parent:FindFirstChild("Humanoid") or instance.Parent.Parent:FindFirstChild("Humanoid")) then
+		local Npart = Instance.new("Part")
+		Npart.Name = "Hit"
+		Npart.Anchored = true
+		Npart.CanCollide = false
+		Npart.Position = target
+		Npart.Parent = game.Workspace:FindFirstChild("GunRel")
+		Npart.Size = Vector3.new(0.1, 0.1, 0.1)
+		Npart.Transparency = 1
+		local hitfx = shotEff:Clone()
+		hitfx.Parent = Npart
+		table.insert(destroyables,Npart)
+	else
+		if (instance.Parent:FindFirstChild("Humanoid") or instance.Parent.Parent:FindFirstChild("Humanoid")) then
+			task.spawn(function()
+				damageMod.Damage(player,15,instance)
+			end)
+		end
+	end
+	local shotfx = gunEff:Clone()
+	shotfx.Parent = tip
+	local direction = ((target - tip.Position) / 2)
+	local length = direction.Magnitude
+	local midpoint = tip.Position + (direction / 2)
+	local trail = Instance.new("Part")
+	trail.Anchored = true
+	trail.CanCollide = false
+	trail.Size = Vector3.new(0.05, 0.05, length)
+	trail.CFrame = CFrame.new(midpoint, target + direction)
+	trail.Parent = game.Workspace:FindFirstChild("GunRel")
+	for ray = 0,5,1 do
+		trail.Transparency += 0.2
+		task.wait(0.075)
+	end
+	trail:Destroy()
+	task.wait(0.2)
+	shotfx:Destroy()
+	task.wait(2)
+	for i,obj in destroyables do
+		obj:Destroy()
+	end
+end
+shootEvent.OnServerEvent:Connect(function(player, tip, hum, mousePos, gunMod)
+	print(tip)
+	local origin = tip.Position
+    local direction = (mousePos - origin).Unit * 1000  -- Ray length 1000 studs
+	-- make raycast :)
+    local rayParams = RaycastParams.new()
+    local ignoreList = {}
+    if gunMod then
+        table.insert(ignoreList, gunMod)
+    end
+    local playerChar = game.Workspace:FindFirstChild(player.Name)
+    if playerChar then
+        table.insert(ignoreList, playerChar)
+	end
+	table.insert(ignoreList,workspace.GunRel:GetChildren())
+    rayParams.FilterDescendantsInstances = ignoreList
+    rayParams.FilterType = Enum.RaycastFilterType.Exclude
+    
+    local rayResult = workspace:Raycast(origin, direction, rayParams)
+    local target = nil
+    if rayResult then
+        target = rayResult.Position
+		print("Ray hit at:", target)
+		local GSS = gunShot:Clone()
+		GSS.Parent = tip
+		GSS:Play()
+		GSS.Ended:Connect(function()
+			GSS:Destroy()
+		end)
+		print(rayResult.Instance)
+		addfx(target,tip,workspace:FindFirstChild(player.Name),rayResult.Instance)
+    else
+        target = origin + direction
+        print("Ray missed, end point:", target)
+	end
+end)
