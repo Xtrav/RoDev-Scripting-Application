@@ -1,0 +1,32 @@
+local module = {
+	Damage = function(player,damage,bodyPart)
+		local rep = game:GetService("ReplicatedStorage")
+		local bloodFx = rep:FindFirstChild("Blood"):Clone()
+		local playerM = game.Players:FindFirstChild(player.Name)
+		local AttackedPlayer = nil
+		if game.Workspace:FindFirstChild(bodyPart.Parent.Name) then
+		AttackedPlayer = game.Workspace:FindFirstChild(bodyPart.Parent.Name)
+		else AttackedPlayer = game.Workspace:FindFirstChild(bodyPart.Parent.Parent.Name)
+		end
+		local Humanoid = AttackedPlayer.Humanoid
+		local playSoundEvent = rep:FindFirstChild("PlaySoundLocally")
+		local hitMarker = workspace.Sounds:FindFirstChild("hit")
+		local Headshot = workspace.Sounds:FindFirstChild("Headshot")
+		local extra = 0
+		if bodyPart.Name == "Head" then
+			playSoundEvent:FireClient(playerM,Headshot)
+			print("BOOOM HEADSHOT")
+			extra = extra + 20
+			end
+		local CalculatedDamage = damage + extra
+		Humanoid.Health = Humanoid.Health - CalculatedDamage
+		bloodFx.Parent = bodyPart
+		playSoundEvent:FireClient(playerM,hitMarker)
+		Humanoid.WalkSpeed = 7
+		task.wait(1)
+		Humanoid.WalkSpeed = 10
+		bloodFx:Destroy()
+	end,
+}
+
+return module
