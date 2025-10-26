@@ -1,0 +1,50 @@
+local rep = game:GetService("ReplicatedStorage")
+local SendCase = require(rep:WaitForChild("SendCasing"))
+local ScreenShakerMod = require(game.ReplicatedStorage:WaitForChild("ScreenShaker"))
+local UpdateServerEvent = rep:WaitForChild("UpdateServer")
+local shootEvent = rep:WaitForChild("ShootRay")
+local soundsFold = game.Workspace:WaitForChild("Sounds")
+local gunReload = soundsFold:WaitForChild("GunReload")
+local gun = script.Parent
+local tip = gun:WaitForChild("Tip")
+local ammoInst = gun:WaitForChild("Ammo")
+local PulloutAnim = script:WaitForChild("GunPullout")
+local HoldAnim = script:WaitForChild("GunHold")
+local playerModel = game.Workspace:WaitForChild(gun.Parent.Parent.Name)
+local Humanoid = playerModel:WaitForChild("Humanoid")
+local Hold = Humanoid:LoadAnimation(HoldAnim)
+local Pullout = Humanoid:LoadAnimation(PulloutAnim)
+local mouse = game.Players.LocalPlayer:GetMouse()
+local length = 0.2
+local debounce = false
+gun.Equipped:Connect(function()
+	 debounce = true
+	Pullout:Play()
+	UpdateServerEvent:FireServer(PulloutAnim,Humanoid)
+	task.wait(0.245)
+	gunReload:Play()
+	Hold:Play()
+	UpdateServerEvent:FireServer(HoldAnim,Humanoid)
+	task.wait(0.2)
+	debounce = false
+end)
+gun.Unequipped:Connect(function()
+	Pullout:Stop()
+	Hold:Stop()
+end)
+gun.Activated:Connect(function()
+	if debounce == true then
+		return
+	elseif debounce == false then
+		debounce = true
+		local hit = mouse.Hit.Position
+		local Ctip = gun:WaitForChild("Tip")
+		shootEvent:FireServer(tip,Humanoid,hit, gun)
+		task.spawn(function()
+		ScreenShakerMod.ScreenShake(playerModel,length)
+		SendCase.CasingRelease(Ctip)
+		end)
+		wait(0.4)
+		debounce = false
+	end
+end)
