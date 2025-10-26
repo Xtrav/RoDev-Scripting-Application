@@ -1,0 +1,16 @@
+local module = {
+	CasingRelease = function(tip)
+		local rep = game:GetService("ReplicatedStorage")
+		local case = rep:FindFirstChild("BulletCasing"):Clone()
+		local tipPos = tip.Position
+		case.Position = Vector3.new(tipPos.X,tipPos.Y + 1,tipPos.Z + 0.4)
+		case.Anchored = false
+		case.CanCollide = true
+        case.Parent = workspace
+		local debris = game:GetService("Debris")
+		print("Cased")
+		debris:AddItem(case,5)
+	end,
+}
+
+return module
